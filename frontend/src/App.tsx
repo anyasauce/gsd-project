@@ -12,7 +12,6 @@ const AppContent: React.FC = () => {
     <div className="min-h-screen">
       {user ? <Dashboard /> : <Login />}
       <Toaster />
-      <h1 className='text-red-500'>TEST</h1>
     </div>
   );
 };

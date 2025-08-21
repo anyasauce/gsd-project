@@ -8,7 +8,8 @@ import { Badge } from './ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { toast } from 'sonner';
-import { Search, Package, MapPin } from 'lucide-react';
+import { Search, Package, MapPin, Image as ImageIcon } from 'lucide-react';
+
 
 interface LostFoundItem {
   id: string;
@@ -19,9 +20,9 @@ interface LostFoundItem {
   dateReported: string;
   status: 'lost' | 'found' | 'returned';
   reportedBy: string;
+  image?: string; // new field for image (base64 or URL)
 }
 
-// Mock data for demonstration
 const mockItems: LostFoundItem[] = [
   {
     id: '1',
@@ -31,27 +32,8 @@ const mockItems: LostFoundItem[] = [
     location: 'CL 201',
     dateReported: '2025-01-15',
     status: 'found',
-    reportedBy: 'GSD Staff'
-  },
-  {
-    id: '2',
-    title: 'iPhone 13',
-    description: 'Black iPhone with cracked screen protector',
-    category: 'Electronics',
-    location: 'ML 403',
-    dateReported: '2025-01-14',
-    status: 'lost',
-    reportedBy: 'John Student'
-  },
-  {
-    id: '3',
-    title: 'Red Backpack',
-    description: 'Red Jansport backpack with physics textbooks',
-    category: 'Bags',
-    location: 'SB 105',
-    dateReported: '2025-01-13',
-    status: 'returned',
-    reportedBy: 'Jane Teacher'
+    reportedBy: 'GSD Staff',
+    image: '' // optional demo image
   }
 ];
 
@@ -63,7 +45,8 @@ export const LostAndFound: React.FC = () => {
     description: '',
     category: '',
     location: '',
-    type: 'lost' as 'lost' | 'found'
+    type: 'lost' as 'lost' | 'found',
+    image: '' // base64 string
   });
 
   const categories = ['Electronics', 'Personal Items', 'Bags', 'Clothing', 'Books', 'Keys', 'Other'];
@@ -73,6 +56,18 @@ export const LostAndFound: React.FC = () => {
     item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.location.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Handle image upload
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData({ ...formData, image: reader.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,7 +88,8 @@ export const LostAndFound: React.FC = () => {
       description: '',
       category: '',
       location: '',
-      type: 'lost'
+      type: 'lost',
+      image: ''
     });
   };
 
@@ -126,42 +122,66 @@ export const LostAndFound: React.FC = () => {
           <TabsTrigger value="report">Report Item</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="browse" className="space-y-4">
-          <div className="grid gap-4">
-            {filteredItems.map((item) => (
-              <Card key={item.id}>
-                <CardHeader className="pb-3">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-lg">{item.title}</CardTitle>
-                      <CardDescription className="flex items-center gap-2 mt-1">
-                        <MapPin className="h-3 w-3" />
-                        {item.location} • {item.dateReported}
-                      </CardDescription>
-                    </div>
-                    <Badge variant={getStatusColor(item.status)}>
-                      {item.status}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground mb-2">{item.description}</p>
-                  <div className="flex justify-between items-center text-xs text-muted-foreground">
-                    <span>Category: {item.category}</span>
-                    <span>Reported by: {item.reportedBy}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-            {filteredItems.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>No items found matching your search.</p>
-              </div>
-            )}
+       {/* Browse Items */}
+<TabsContent value="browse" className="space-y-4">
+  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    {filteredItems.map((item) => (
+      <Card
+        key={item.id}
+        className="rounded-2xl shadow-md hover:shadow-lg transition overflow-hidden"
+      >
+        {/* Image */}
+        {item.image ? (
+          <img
+            src={item.image}
+            alt={item.title}
+            className="w-full h-40 object-cover"
+          />
+        ) : (
+          <div className="w-full h-40 flex items-center justify-center bg-gray-100 text-gray-400">
+            <ImageIcon className="h-8 w-8" />
           </div>
-        </TabsContent>
+        )}
+
+        {/* Content */}
+        <CardHeader className="p-4">
+          <div className="flex justify-between items-start">
+            <CardTitle className="text-base font-semibold truncate">
+              {item.title}
+            </CardTitle>
+            <Badge variant={getStatusColor(item.status)}>{item.status}</Badge>
+          </div>
+          <CardDescription className="flex items-center gap-1 text-xs mt-1">
+            <MapPin className="h-3 w-3" />
+            {item.location}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="px-4 pb-4">
+          <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+            {item.description}
+          </p>
+          <div className="flex justify-between items-center text-xs text-muted-foreground">
+            <span>{item.category}</span>
+            <span>{item.dateReported}</span>
+          </div>
+          <Button className="w-full mt-3" size="sm">
+            View Details
+          </Button>
+        </CardContent>
+      </Card>
+    ))}
+
+    {filteredItems.length === 0 && (
+      <div className="text-center py-8 text-muted-foreground col-span-full">
+        <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
+        <p>No items found matching your search.</p>
+      </div>
+    )}
+  </div>
+</TabsContent>
+
         
+        {/* Report Form */}
         <TabsContent value="report">
           <Card>
             <CardHeader>
@@ -174,7 +194,7 @@ export const LostAndFound: React.FC = () => {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="report-type">Report Type</Label>
+                    <Label>Report Type</Label>
                     <Select
                       value={formData.type}
                       onValueChange={(value: 'lost' | 'found') => setFormData({ ...formData, type: value })}
@@ -189,9 +209,8 @@ export const LostAndFound: React.FC = () => {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="item-title">Item Title</Label>
+                    <Label>Item Title</Label>
                     <Input
-                      id="item-title"
                       placeholder="e.g., Blue Water Bottle"
                       value={formData.title}
                       onChange={(e) => setFormData({ ...formData, title: e.target.value })}
@@ -202,7 +221,7 @@ export const LostAndFound: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="category">Category</Label>
+                    <Label>Category</Label>
                     <Select
                       value={formData.category}
                       onValueChange={(value) => setFormData({ ...formData, category: value })}
@@ -220,9 +239,8 @@ export const LostAndFound: React.FC = () => {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="location">Location</Label>
+                    <Label>Location</Label>
                     <Input
-                      id="location"
                       placeholder="e.g., CL 403, ML 201"
                       value={formData.location}
                       onChange={(e) => setFormData({ ...formData, location: e.target.value })}
@@ -232,15 +250,26 @@ export const LostAndFound: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="item-description">Description</Label>
+                  <Label>Description</Label>
                   <Textarea
-                    id="item-description"
                     placeholder="Provide detailed description of the item..."
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     rows={3}
                     required
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Upload Image (optional)</Label>
+                  <Input type="file" accept="image/*" onChange={handleImageChange} />
+                  {formData.image && (
+                    <img 
+                      src={formData.image} 
+                      alt="Preview" 
+                      className="w-32 h-32 object-cover mt-2 rounded-lg border" 
+                    />
+                  )}
                 </div>
 
                 <Button type="submit" className="w-full">

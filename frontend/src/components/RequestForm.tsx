@@ -6,20 +6,12 @@ import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { toast } from 'sonner';
+import type { ServiceRequest } from './types';
 
-export interface ServiceRequest {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  priority: string;
-  location: string;
-  building: string;
-  room: string;
-  requestedBy: string;
-  requestedAt: string;
-  status: 'ongoing' | 'done' | 'no action';
-}
+type RequestFormProps = {
+  user: { name: string };
+  onSubmit: (request: ServiceRequest) => void;
+};
 
 const buildings = [
   { value: 'ML', label: 'Main Library (ML)' },
@@ -40,45 +32,55 @@ const categories = [
   'Other'
 ];
 
-export const RequestForm: React.FC = () => {
+const departments = ["CITE", "CAS", "CBA", "CNAHS", "CCJE"];
+
+export const RequestForm: React.FC<RequestFormProps> = ({ user, onSubmit }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     category: '',
     priority: '',
     building: '',
-    room: ''
+    room: '',
+    department: '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // In a real app, this would submit to your backend/Supabase
+
+    if (!user) return;
+
     const request: ServiceRequest = {
       id: Date.now().toString(),
-      ...formData,
+      title: formData.title,
+      description: formData.description,
+      category: formData.category,
+      priority: formData.priority as 'low' | 'medium' | 'high' | 'urgent',
+      building: formData.building,
+      room: formData.room,
       location: `${formData.building} ${formData.room}`,
-      requestedBy: 'Current User',
+      department: formData.department,
+      requestedBy: user.name,
       requestedAt: new Date().toISOString(),
-      status: 'ongoing'
+      status: 'ongoing', // default status
     };
 
-    console.log('Submitting request:', request);
+    onSubmit(request);
     toast.success('Service request submitted successfully!');
-    
-    // Reset form
+
     setFormData({
       title: '',
       description: '',
       category: '',
       priority: '',
       building: '',
-      room: ''
+      room: '',
+      department: '',
     });
   };
 
   return (
-    <Card className="max-w-2xl mx-auto">
+    <Card className="max-w-2xl mx-auto bg-white">
       <CardHeader>
         <CardTitle>Submit Service Request</CardTitle>
         <CardDescription>
@@ -98,6 +100,7 @@ export const RequestForm: React.FC = () => {
                 required
               />
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="category">Category</Label>
               <Select
@@ -107,11 +110,9 @@ export const RequestForm: React.FC = () => {
                 <SelectTrigger>
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
+                <SelectContent className="bg-white shadow-lg rounded-md">
+                  {categories.map((cat) => (
+                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -128,15 +129,14 @@ export const RequestForm: React.FC = () => {
                 <SelectTrigger>
                   <SelectValue placeholder="Select building" />
                 </SelectTrigger>
-                <SelectContent>
-                  {buildings.map((building) => (
-                    <SelectItem key={building.value} value={building.value}>
-                      {building.label}
-                    </SelectItem>
+                <SelectContent className="bg-white shadow-lg rounded-md">
+                  {buildings.map((b) => (
+                    <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="room">Room Number</Label>
               <Input
@@ -147,6 +147,7 @@ export const RequestForm: React.FC = () => {
                 required
               />
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="priority">Priority</Label>
               <Select
@@ -156,7 +157,7 @@ export const RequestForm: React.FC = () => {
                 <SelectTrigger>
                   <SelectValue placeholder="Select priority" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white shadow-lg rounded-md">
                   <SelectItem value="low">Low</SelectItem>
                   <SelectItem value="medium">Medium</SelectItem>
                   <SelectItem value="high">High</SelectItem>
@@ -164,6 +165,23 @@ export const RequestForm: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="department">Department</Label>
+            <Select
+              value={formData.department}
+              onValueChange={(value) => setFormData({ ...formData, department: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select department" />
+              </SelectTrigger>
+              <SelectContent className="bg-white shadow-lg rounded-md">
+                {departments.map((dept) => (
+                  <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
@@ -178,9 +196,7 @@ export const RequestForm: React.FC = () => {
             />
           </div>
 
-          <Button type="submit" className="w-full">
-            Submit Request
-          </Button>
+          <Button type="submit" className="w-full">Submit Request</Button>
         </form>
       </CardContent>
     </Card>

@@ -12,6 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { CheckCircle, Clock, XCircle, Plus, MoreVertical, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 
+
+
 export interface TodoItem {
   id: string;
   title: string;
@@ -440,7 +442,7 @@ export const AdminTodoList: React.FC = () => {
           <div className="space-y-4">
             {todosByStatus.done.map((todo) => (
               <TodoCard key={todo.id} todo={todo} />
-            ))}
+            ))} 
             {todosByStatus.done.length === 0 && (
               <div className="text-center py-8 text-muted-foreground">
                 <CheckCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -466,4 +468,4 @@ export const AdminTodoList: React.FC = () => {
       </Tabs>
     </div>
   );
-};
+};    

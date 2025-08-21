@@ -7,7 +7,9 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  department?: string; // <-- add this
 }
+
 
 interface AuthContextType {
   user: User | null;
@@ -29,7 +31,7 @@ export const useAuth = () => {
 // Mock users for demo purposes
 const mockUsers: User[] = [
   { id: '1', name: 'John Student', email: 'student@university.edu', role: 'student' },
-  { id: '2', name: 'Jane Teacher', email: 'teacher@university.edu', role: 'teacher' },
+  { id: '2', name: 'Jane Teacher', email: 'teacher@university.edu', role: 'teacher', department: 'CITE' },
   { id: '3', name: 'Admin User', email: 'admin@university.edu', role: 'admin' },
 ];
 
