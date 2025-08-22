@@ -1,12 +1,16 @@
 import React from 'react';
-import { AuthProvider, useAuth } from './components/AuthContext';
-import { Login } from './components/Login';
-import { Dashboard } from './components/Dashboard';
+import { AuthProvider, useAuth } from './pages/context/AuthContext';
+import { Login } from './pages/auth/Login';
+import { Dashboard } from './pages/dashboard/Dashboard';
 import { Toaster } from './components/ui/sonner';
 
 
 const AppContent: React.FC = () => {
-  const { user } = useAuth();
+  const { user, isAuthLoading } = useAuth();
+
+  if (isAuthLoading) {
+    return <p className="text-center mt-20">Checking login status...</p>;
+  }
 
   return (
     <div className="min-h-screen">
